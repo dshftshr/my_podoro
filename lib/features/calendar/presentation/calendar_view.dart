@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../timer/providers/streak_provider.dart';
+import '../../timer/providers/history_provider.dart';
 
 class CalendarView extends ConsumerStatefulWidget {
   const CalendarView({super.key});
@@ -12,10 +13,12 @@ class CalendarView extends ConsumerStatefulWidget {
 
 class _CalendarViewState extends ConsumerState<CalendarView> {
   DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     final streak = ref.watch(streakNotifierProvider);
+    final history = ref.watch(historyNotifierProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final textColor = isDark ? Colors.white : const Color(0xFF14142B);
@@ -82,6 +85,8 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
             const SizedBox(height: 32),
             _buildCalendarCard(streak.streakDates, isDark, textColor),
             const SizedBox(height: 24),
+            _buildHistoryCard(history, isDark, textColor, subTextColor),
+            const SizedBox(height: 24),
             _buildStatsCard(streak.currentStreakDays, isDark, textColor),
             const SizedBox(height: 32),
           ],
@@ -124,6 +129,15 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
         focusedDay: _focusedDay,
+        selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+        onDaySelected: (selectedDay, focusedDay) {
+          if (!isSameDay(_selectedDay, selectedDay)) {
+            setState(() {
+              _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
+            });
+          }
+        },
         headerStyle: HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
@@ -153,6 +167,15 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
               day,
               textColor,
               isDark,
+              isStreak: _isStreakDay(day, streakSet),
+            );
+          },
+          selectedBuilder: (context, day, focusedDay) {
+            return _buildCalendarCell(
+              day,
+              textColor,
+              isDark,
+              isSelected: true,
               isStreak: _isStreakDay(day, streakSet),
             );
           },
@@ -192,19 +215,20 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
     bool isToday = false,
     bool isStreak = false,
     bool isOutside = false,
+    bool isSelected = false,
   }) {
     Color textColor = isOutside
         ? (isDark ? const Color(0xFF4A5065) : const Color(0xFFD0D4E0))
         : defaultTextColor;
     
-    if (isToday) textColor = isDark ? Colors.white : Colors.black;
+    if (isToday || isSelected) textColor = isDark ? Colors.white : Colors.black;
 
     return Container(
       margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isToday ? const Color(0xFFDA3B21) : Colors.transparent,
-        border: isStreak && !isToday
+        color: isSelected ? const Color(0xFFDA3B21) : (isToday ? const Color(0xFFDA3B21).withOpacity(0.5) : Colors.transparent),
+        border: isStreak && !isToday && !isSelected
             ? Border.all(color: const Color(0xFFF9A18D), width: 1.5)
             : null,
       ),
@@ -216,7 +240,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
               '${day.day}',
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: isToday || isStreak
+                fontWeight: isToday || isStreak || isSelected
                     ? FontWeight.w800
                     : FontWeight.w600,
                 color: textColor,
@@ -334,6 +358,109 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryCard(List<TaskHistory> history, bool isDark, Color textColor, Color subTextColor) {
+    final dateStr = _selectedDay.toIso8601String().substring(0, 10);
+    final dayHistory = history.where((h) => h.date == dateStr).toList();
+    
+    if (dayHistory.isEmpty) return const SizedBox.shrink();
+
+    final cardBg = isDark ? const Color(0xFF20263F) : Colors.white;
+    final shadowColor = isDark ? Colors.transparent : const Color(0xFF6153FF).withOpacity(0.05);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor,
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Activity History',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...dayHistory.map((h) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF282E45) : const Color(0xFFF3F4F8),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        h.taskType,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                      Text(
+                        h.timestamp,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: subTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${h.cycles} Cycles Completed',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: const Color(0xFFDA3B21),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (h.subTasks.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ...h.subTasks.map((t) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('- ', style: TextStyle(color: Color(0xFFDA3B21), fontWeight: FontWeight.bold)),
+                              Expanded(
+                                child: Text(
+                                  t,
+                                  style: TextStyle(fontSize: 14, color: subTextColor),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                  ],
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

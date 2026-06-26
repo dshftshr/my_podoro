@@ -29,7 +29,7 @@ class TimerNotifier extends _$TimerNotifier {
 
   void startTimer() {
     if (state.isRunning) return;
-    
+
     state = state.copyWith(isRunning: true);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state.remainingSeconds > 0) {
@@ -52,11 +52,8 @@ class TimerNotifier extends _$TimerNotifier {
       // Reward diamonds and increment mission!
       ref.read(economyNotifierProvider.notifier).addDiamonds(2);
       ref.read(missionNotifierProvider.notifier).addCompletedCycle();
-      
-      state = state.copyWith(
-        phase: TimerPhase.waiting,
-        isRunning: false,
-      );
+
+      state = state.copyWith(phase: TimerPhase.waiting, isRunning: false);
     } else if (state.phase == TimerPhase.breakPhase) {
       // Break done, move to focus
       state = state.copyWith(
