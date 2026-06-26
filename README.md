@@ -2,7 +2,7 @@
 
 MyPodoro is a modern, gamified productivity application built with **Flutter** and **Riverpod**. It blends the proven Pomodoro technique with RPG-like progression elements, helping you stay focused while earning rewards!
 
-## 👥 Team Members
+## 👥 Team Project
 
 - Desi Hafita Ashri
 - Dwi Yulianti
@@ -25,10 +25,6 @@ MyPodoro is a modern, gamified productivity application built with **Flutter** a
 - **Local Persistence**: SharedPreferences / Isar
 - **UI Components**: `table_calendar`, `audioplayers` (for focus background music)
 
-## 📸 Screenshots
-
-*(You can add your application screenshots here)*
-
 ## 🏃‍♂️ Getting Started
 
 ### Prerequisites
@@ -40,7 +36,7 @@ MyPodoro is a modern, gamified productivity application built with **Flutter** a
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/my_podoro.git
+   git clone https://github.com/dshftshr/my_podoro.git
    cd my_podoro
    ```
 
@@ -71,7 +67,5 @@ MyPodoro is a modern, gamified productivity application built with **Flutter** a
 - `lib/features/auth/`: Contains Supabase authentication and user profile syncing logic.
 
 ## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/yourusername/my_podoro/issues).
 
-## 📝 License
-This project is [MIT](https://choosealicense.com/licenses/mit/) licensed.
+Contributions, issues, and feature requests are welcome! Feel free to check [issues page](https://github.com/dshftshr/my_podoro/issues).
