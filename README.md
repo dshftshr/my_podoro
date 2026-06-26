@@ -2,7 +2,7 @@
 
 MyPodoro is a modern, gamified productivity application built with **Flutter** and **Riverpod**. It blends the proven Pomodoro technique with RPG-like progression elements, helping you stay focused while earning rewards!
 
-## 👥 Team Members
+## 👥 Team Project
 
 - Desi Hafita Ashri
 - Dwi Yulianti
